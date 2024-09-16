@@ -17,7 +17,8 @@ cors <- function(req, res) {
   plumber::forward()
 }
 
-# Endpoint to generate the random intercept design matrix
+#* Generate Random Intercept Design Matrix for Mixed Models
+#*
 #* @param ns A vector specifying the number of observations per group (comma-separated).
 #* @get /random_intercept_matrix
 function(ns) {
@@ -28,6 +29,30 @@ function(ns) {
   # Return the matrix
   return(as.data.frame(Z))
 }
+
+
+#* Generate Random Design Matrices for Mixed Models
+#*
+#* @param ns A comma-separated string of group sizes (e.g., "5,3,2").
+#* @param X A comma-separated string of predictor values for X matrix (optional). The length must be equal to the sum of ns
+#* @get /random_design_matrices
+function(ns, X = NULL) {
+  # Convert 'ns' and 'X' from strings to numeric vectors/matrix
+  ns <- as.numeric(strsplit(ns, ",")[[1]])
+
+  if (!is.null(X)) {
+    X <- as.numeric(strsplit(X, ",")[[1]])
+    X <- matrix(X, ncol = length(X)/sum(ns))  # Assume it's a matrix
+  }
+
+  # Call the functions from your package
+  Z_list <- vpc::generateRandomDesignMatrices(ns, X)
+
+  # Return the result as a list of matrices
+  return(lapply(Z_list, as.data.frame))  # Convert matrices to data.frames for JSON serialization
+}
+
+
 
 
 # Programmatically alter your API
