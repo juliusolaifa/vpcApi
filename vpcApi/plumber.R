@@ -4,18 +4,29 @@ library(vpc)  # Assuming your vpc package contains the singleGLMMData function
 #* @apiTitle vpcApi
 #* @apiDescription API to generate GLMM data with flexible inputs
 
+
+#* @filter CORS
+cors <- function(req, res) {
+  res$setHeader("Access-Control-Allow-Origin", "http://localhost:5173")
+  res$setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+  res$setHeader("Access-Control-Allow-Headers", "Content-Type")
+  if (req$REQUEST_METHOD == "OPTIONS") {
+    res$status <- 200
+    return(list())
+  }
+  plumber::forward()
+}
+
 # Endpoint to generate the random intercept design matrix
 #* @param ns A vector specifying the number of observations per group (comma-separated).
 #* @get /random_intercept_matrix
 function(ns) {
-  # Convert the input string to a numeric vector
+
   ns <- as.numeric(strsplit(ns, ",")[[1]])
-
-  # Generate the random intercept design matrix
   Z <- vpc::generateRandomInterceptMatrix(ns)
-
+  #
   # Return the matrix
-  return(as.data.frame(Z))  # Converting to data frame for JSON serialization
+  return(as.data.frame(Z))
 }
 
 
@@ -23,6 +34,8 @@ function(ns) {
 #* @plumber
 function(pr) {
     pr %>%
-        # Overwrite the default serializer to return unboxed JSON
+        # Overwrite the default serializer to return unboxed JS
         pr_set_serializer(serializer_unboxed_json())
 }
+
+
